@@ -61,7 +61,7 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
         startBackgroundService()
 
         binding.idTVHeading.setOnClickListener {
-            Toast.makeText(this, "${isServiceRunning()}", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "${isServiceRunning()}", Toast.LENGTH_SHORT).show()
         }
     /*    val notificationIntent = Intent(Settings.ACTION_APPLICATION_SETTINGS)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
