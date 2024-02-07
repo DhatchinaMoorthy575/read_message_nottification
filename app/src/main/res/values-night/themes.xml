@@ -4,4 +4,11 @@
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
+
+    <style name="Theme.MyApp.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/blackd</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/bell</item>
+        <item name="postSplashScreenTheme">@style/Theme.InternalApp</item>
+        <item name="windowSplashScreenAnimationDuration">5000</item>
+    </style>
 </resources>

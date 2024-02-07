@@ -72,4 +72,9 @@ dependencies {
     // Retrofit log
     implementation ("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3")
 
+    implementation ("com.guolindev.permissionx:permissionx:1.7.1")
+
+    //splashscreen
+    implementation ("androidx.core:core-splashscreen:1.0.1")
+
 }

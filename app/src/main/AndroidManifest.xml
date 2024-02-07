@@ -7,6 +7,7 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
@@ -20,6 +21,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.NOTIFICATION_POLICY_ACCESS_SETTINGS " />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name=".util.MyApp"
@@ -32,29 +35,41 @@
         android:persistent="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.InternalApp"
+        android:theme="@style/Theme.MyApp.Starting"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- android:theme="@style/Theme.InternalApp"-->
         <activity
             android:name=".activity.ReadSMSMessagesActivity"
-            android:exported="true">
+            android:exported="true"
+            >
             <!--   <intent-filter>
                    <action android:name="android.intent.action.MAIN" />
 
                    <category android:name="android.intent.category.LAUNCHER" />
                </intent-filter>-->
         </activity>
+
         <activity
             android:name="com.test.internalapp.activity.ListenIncomingSMSActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.MyApp.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- <activity android:name="com.test.internalapp.SplashScreenActivity"
+             android:exported="true"
+             android:theme="@style/Theme.MySplashScreen">
+         <intent-filter>
+             <action android:name="android.intent.action.MAIN" />
 
+             <category android:name="android.intent.category.LAUNCHER" />
+         </intent-filter>
+         </activity>-->
         <service
             android:name=".service.NotificationService"
             android:exported="true"
@@ -64,6 +79,7 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
         <service
             android:name="com.test.internalapp.service.MyForegroundService"
             android:exported="false"
