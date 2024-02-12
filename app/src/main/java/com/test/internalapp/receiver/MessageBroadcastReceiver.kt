@@ -29,39 +29,26 @@ class MessageBroadcastReceiver : BroadcastReceiver() {
                 val dateInMillis= smsMessage.timestampMillis
 
                 val message = "Telephony.Sms Sender : " + smsMessage.displayOriginatingAddress + "Message: " + smsMessage.messageBody
-                /*if (mListener != null) {
-                    mListener!!.messageReceived(sender, messageBody)
-                }
-                else {
 
-                }*/
                 serviceScope.launch {
-                    val time = Calendar.getInstance().time
-                    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                   // val time = Calendar.getInstance().time
+                    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                     val current =  formatter.format(dateInMillis)//formatter.format(time)
 
                     val messageEntity = MessageEntity(sender = sender, messageBody = messageBody, date = current)
-                    messageRepository.insertMessage(messageEntity)
+                  //  messageRepository.insertMessage(messageEntity)
+
+                    if (mListener != null) {
+                        mListener!!.messageReceived(sender, messageBody,messageEntity)
+                    }
+                    else {
+
+                    }
                 }
+
             }
         }
-/*
-                // getting bundle data on below line from intent.
-                val data = intent.extras
-                // creating an object on below line.
-               // val pdus = data!!["pdus"] as Array<Any>?
-                val pdus = data?.get("pdus") as? Array<*>
-                // running for loop to read the sms on below line.
-                for (i in pdus!!.indices) {
-                    // getting sms message on below line.
-                    val smsMessage: SmsMessage = SmsMessage.createFromPdu(pdus[i] as ByteArray, String())
-                    // extracting the sms from sms message and setting it to string on below line.
-                    val message = "Sender : " + smsMessage.displayOriginatingAddress + "Message: " + smsMessage.messageBody
-                    // adding the message to listener on below line.
-                    if (mListener!=null) {
-                        mListener!!.messageReceived(smsMessage.displayOriginatingAddress ,smsMessage.messageBody)
-                    }
-                }*/
+
     }
 
     companion object {

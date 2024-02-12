@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.test.internalapp.databinding.ActivityReadSmsMessagesBinding
+import com.test.internalapp.localdata.model.MessageEntity
 
 
 class ReadSMSMessagesActivity : AppCompatActivity() {
@@ -25,7 +26,7 @@ class ReadSMSMessagesActivity : AppCompatActivity() {
         setContentView(view)
 
         val adapter = ArrayAdapter(this, R.layout.simple_list_item_1, smsList)
-        binding.listView.setAdapter(adapter)
+        binding.listView.adapter = adapter
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -78,5 +79,5 @@ class ReadSMSMessagesActivity : AppCompatActivity() {
 
 interface MessageListenerInterface {
     // creating an interface method for messages received.
-    fun messageReceived(sender: String, messageBody: String)
+    fun messageReceived(sender: String, messageBody: String, messageEntity: MessageEntity)
 }

@@ -9,7 +9,7 @@ import com.test.internalapp.localdata.dao.StatusBarNotificationDao
 import com.test.internalapp.localdata.model.MessageEntity
 import com.test.internalapp.localdata.model.StatusBarNotificationEntity
 
-@Database(entities = [StatusBarNotificationEntity::class, MessageEntity::class], version = 5, exportSchema = false)
+@Database(entities = [StatusBarNotificationEntity::class, MessageEntity::class], version = 12, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun statusBarNotificationDao(): StatusBarNotificationDao

@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class SharedPrefs {
 
-    private static String SHARED_PREFS_FILE_NAME = "com.test.internalapp";
+    private static final String SHARED_PREFS_FILE_NAME = "com.test.internalapp";
 
 
     public static String START_SERVICE_ON_BOOT_COMPLETED = "START_SERVICE_ON_BOOT_COMPLETED";

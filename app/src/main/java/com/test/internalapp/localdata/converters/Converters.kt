@@ -10,6 +10,7 @@ class Converters{
     @TypeConverter
     fun bitmapToBase64(bitmap: Bitmap?) : String?{
         return if(bitmap!=null) {
+
             // create a ByteBuffer and allocate size equal to bytes in   the bitmap
             val byteBuffer = ByteBuffer.allocate(bitmap.height * bitmap.rowBytes)
             //copy all the pixels from bitmap to byteBuffer

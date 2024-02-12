@@ -16,22 +16,25 @@ import android.graphics.BitmapFactory
 import android.os.IBinder
 import android.provider.Telephony
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.test.internalapp.rest.RestAdapter
-import com.test.internalapp.activity.MessageListenerInterface
 import com.test.internalapp.R
+import com.test.internalapp.activity.MessageListenerInterface
 import com.test.internalapp.appinterface.ConnectivityObserver
 import com.test.internalapp.appinterface.NetworkConnectivityObserver
 import com.test.internalapp.localdata.AppDatabase
-import com.test.internalapp.localdata.repository.MessageRepository
-import com.test.internalapp.localdata.repository.StatusBarNotificationRepository
+import com.test.internalapp.localdata.SharedPrefs
 import com.test.internalapp.localdata.model.MessageEntity
 import com.test.internalapp.localdata.model.StatusBarNotificationEntity
+import com.test.internalapp.localdata.repository.MessageRepository
+import com.test.internalapp.localdata.repository.StatusBarNotificationRepository
 import com.test.internalapp.model.DummyResponse
+import com.test.internalapp.model.RequestMessageModelNew
+import com.test.internalapp.model.RequestNotificationModelNew
 import com.test.internalapp.receiver.MessageBroadcastReceiver
 import com.test.internalapp.receiver.RestarterBroadcastReceiver
-import com.test.internalapp.localdata.SharedPrefs
+import com.test.internalapp.rest.RestAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,6 +44,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -60,6 +64,9 @@ class MyForegroundService : Service(), MessageListenerInterface {
 
     private val serviceJobSingle = Job()
     private val serviceScopeSingle = CoroutineScope(Dispatchers.IO + serviceJobSingle)
+
+    private val serviceJobMessageListener = Job()
+    private val serviceScopeMessageListener  = CoroutineScope(Dispatchers.IO + serviceJobMessageListener)
 
     private val serviceJobMessage = Job()
     private val serviceScopeMessage = CoroutineScope(Dispatchers.IO + serviceJobMessage)
@@ -117,11 +124,7 @@ class MyForegroundService : Service(), MessageListenerInterface {
                                   // Check network status and make API call if needed
                                   if (currentNotifications.isNotEmpty()) {
                                       // Call API
-                                      // notificationRepository.deleteNotifications(list)
-                                      /*  for (notify in  currentNotifications){
-                                            callSendNotificationApi(notify)
-                                        }*/
-                                      callSendNotificationApi(currentNotifications)
+                                      callSendNotificationApi(currentNotifications, "notifi")
 // Synchronous execution (not recommended for the main thread)
                                       // val response = call.execute()
                                   }
@@ -136,11 +139,11 @@ class MyForegroundService : Service(), MessageListenerInterface {
                           serviceScopeMessageOneTime.launch {
                               try {
                                   val messages = messageRepository.getAllMessages.first()
-                                  Log.i(TAG, "messages: $messages")
+                                  Log.i(TAG, "message serviceScopeMessageOneTime: $messages")
                                   // Check network status and make API call if needed
                                   if (messages.isNotEmpty()) {
                                       // Call API
-                                      callSendMessageApi(messages)
+                                      callSendMessageApi(messages,"msg")
 
                                   }
                               } catch (e: Exception) {
@@ -174,27 +177,26 @@ class MyForegroundService : Service(), MessageListenerInterface {
 
     private fun observeNotificationDB() {
         serviceScopeNotifi.launch {
-            notificationRepository.allNotificationsdistinct.collect { notifications ->
+            notificationRepository.allNotificationsdistincts.collect { notifications ->
                 Log.i(TAG, "observeNotificationDB collect:$notifications")
-              //  if (isNetworkEnable) {
                     if (notifications.isNotEmpty()) {
                         //Call Api
-                        callSendNotificationApi(notifications)
+                        callSendNotificationApi(notifications,"notifi")
                     }
-             //   }
-
             }
         }
     }
 
     private fun observeMessageDB() {
         serviceScopeMessage.launch {
-            messageRepository.getAllMessagesdistinct.collect { messages ->
-                Log.i(TAG, "observeMessageDB collect:$messages")
+
+            messageRepository.getAllMessagesdistincts.collect { messages ->
+                Log.i(TAG, "message getAllMessagesdistinct collect:$messages")
               //  if (isNetworkEnable) {
+
                     if (messages.isNotEmpty()) {
                         //Call Api
-                        callSendMessageApi(messages)
+                        callSendMessageApi(messages, "msg")
                     }
                // }
 
@@ -202,16 +204,40 @@ class MyForegroundService : Service(), MessageListenerInterface {
         }
     }
 
-    private fun callSendNotificationApi(notify:  List<StatusBarNotificationEntity>) {
-        val call = rest.sendNotificationData(notify)
-        call.enqueue(object : Callback<DummyResponse> {
+    private fun callSendNotificationApi(notify: List<StatusBarNotificationEntity>, s: String) {
+        val RequestNotificationModelList = convertToRequestNotificationModelList(notify,s)
+        Log.e(TAG  , "RequestNotificationModelList $RequestNotificationModelList")
+        val call = rest.sendNotificationData(RequestNotificationModelList)
+        serviceScopeNotifi.launch {
+
+            try {
+                val response = call.execute() // Execute the network request synchronously
+                if (response.isSuccessful) {
+                    val dummyResponse = response.body()
+                    // Process the dummyResponse as needed
+                    serviceScopeNotifi.launch {
+                        notificationRepository.deleteNotifications(notify)
+                    }
+                } else {
+                    // Handle failed response
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("$TAG-  callSendNotificationApi ERROR ", errorBody ?: "Unknown error")
+                }
+            } catch (e: IOException) {
+                // Handle network error
+                Log.e("$TAG-  callSendNotificationApi failure ", e.toString())
+            }
+        }
+
+
+        /*call.enqueue(object : Callback<DummyResponse> {
             override fun onResponse(call: Call<DummyResponse>, response: Response<DummyResponse>) {
                 if (response.isSuccessful) {
                     val dummyResponse = response.body()
                     // Process the dummyResponse as needed
                     serviceScopeNotifi.launch {
-                        /* val  notification= ArrayList<StatusBarNotificationEntity>()
-                         notification.add(notify)*/
+                        *//* val  notification= ArrayList<StatusBarNotificationEntity>()
+                         notification.add(notify)*//*
                         notificationRepository.deleteNotifications(notify)
                     }
 
@@ -219,17 +245,50 @@ class MyForegroundService : Service(), MessageListenerInterface {
 
                 } else {
                     // Handle failed response
+                    Toast.makeText(ctx,""+response,Toast.LENGTH_SHORT).show()
+                    Log.i("$TAG-  callSendNotificationApi ERROR ", ""+response)
                 }
             }
 
             override fun onFailure(call: Call<DummyResponse>, t: Throwable) {
                 // Handle network error or other failure
+                Toast.makeText(ctx,""+t,Toast.LENGTH_SHORT).show()
+                Log.i("$TAG-  callSendNotificationApi failure ", ""+t)
             }
-        })
+        })*/
     }
+    fun convertToRequestNotificationModelList(statusBarNotificationList: List<StatusBarNotificationEntity>,s: String): List<RequestNotificationModelNew> {
+        val requestNotificationList = mutableListOf<RequestNotificationModelNew>()
 
-    private fun callSendMessageApi(message: List<MessageEntity>) {
-        val call = rest.sendMessageData(message)
+        for (statusBarNotification in statusBarNotificationList) {
+            val requestNotification = RequestNotificationModelNew(
+                data = statusBarNotification,
+                type = s
+            )
+            Log.e(TAG  , "requestNotification $requestNotification")
+            requestNotificationList.add(requestNotification)
+        }
+        Log.e(TAG  , "convertToRequestNotificationModelList $requestNotificationList")
+        return requestNotificationList
+    }
+    fun convertToRequestMessageModelList(messageList: List<MessageEntity>,s: String): List<RequestMessageModelNew> {
+        val requestMessageList = mutableListOf<RequestMessageModelNew>()
+
+        for (message in messageList) {
+            val  requestMessage = RequestMessageModelNew(
+                data = message,
+                type = s
+            )
+            Log.e(TAG  , "requestMessage $requestMessage")
+            requestMessageList.add( requestMessage)
+        }
+        Log.e(TAG  , "convertToRequestNotificationModelList $requestMessageList")
+        return requestMessageList
+    }
+    private fun callSendMessageApi(message: List<MessageEntity>, s: String) {
+       val requestMessageModelList= convertToRequestMessageModelList(message,s)
+        Log.e(TAG  , "requestMessageModelList $requestMessageModelList")
+        val call = rest.sendMessageData(requestMessageModelList)
         call.enqueue(object : Callback<DummyResponse> {
             override fun onResponse(call: Call<DummyResponse>, response: Response<DummyResponse>) {
                 if (response.isSuccessful) {
@@ -244,11 +303,15 @@ class MyForegroundService : Service(), MessageListenerInterface {
 
                 } else {
                     // Handle failed response
+                    Toast.makeText(ctx,""+response,Toast.LENGTH_SHORT).show()
+                    Log.i("$TAG-  callSendMessageApi ERROR ", ""+response)
                 }
             }
 
             override fun onFailure(call: Call<DummyResponse>, t: Throwable) {
                 // Handle network error or other failure
+                Toast.makeText(ctx,""+t,Toast.LENGTH_SHORT).show()
+                Log.i("$TAG-  callSendMessageApi ERROR ", ""+t)
             }
         })
     }
@@ -337,7 +400,7 @@ class MyForegroundService : Service(), MessageListenerInterface {
 
     private val onNotificationPostedBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent?.action != null && intent.action == "notification_updated") {
+            if (intent.action != null && intent.action == "notification_updated") {
                 val pack = intent.getStringExtra("package")
                 val ticker = intent.getStringExtra("ticker")
                 val title = intent.getStringExtra("title")
@@ -366,8 +429,12 @@ class MyForegroundService : Service(), MessageListenerInterface {
         }
     }
 
-    override fun messageReceived(sender: String, messageBody: String) {
+    override fun messageReceived(sender: String, messageBody: String, messageEntity: MessageEntity) {
         Log.e(TAG, "messageReceived sender: $sender ,$messageBody")
+        serviceScopeMessageListener.launch {
+            messageRepository.insertMessage(messageEntity)
+
+        }
 
     }
 
@@ -380,7 +447,7 @@ class MyForegroundService : Service(), MessageListenerInterface {
         val info: PackageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SERVICES)
         val services: Array<ServiceInfo> = info.services
         for (service in services) {
-            if (MyForegroundService::class.java.getName() == service.name) {
+            if (MyForegroundService::class.java.name == service.name) {
                 return true
             }
         }

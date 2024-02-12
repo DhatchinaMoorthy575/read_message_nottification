@@ -20,7 +20,7 @@ import kotlinx.parcelize.Parcelize
 @TypeConverters(Converters::class)
 @Parcelize
 data class StatusBarNotificationEntity(
-   /* @PrimaryKey(autoGenerate = true)*/ val id: Int = 0,
+  // /* @PrimaryKey(autoGenerate = true)*/ val id: Int = 0,
     @ColumnInfo("packageName")
     val packageName: String,
     @ColumnInfo("ticker")
@@ -31,12 +31,10 @@ data class StatusBarNotificationEntity(
     val text: String,
     @ColumnInfo("subtext")
     val subtext: String,
-    val smallIconId: Bitmap?,
-    val largeIcon: Bitmap?,
+/*    val smallIconId: Bitmap?,
+    val largeIcon: Bitmap?,*/
    val datetime: String,
     //val extras: String,
     //val sbn: StatusBarNotification
 
-) : Parcelable {
-
-}
+) : Parcelable

@@ -29,6 +29,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.permissionx.guolindev.PermissionX
 import com.test.internalapp.databinding.ActivityListenIncomingSmsBinding
+import com.test.internalapp.localdata.model.MessageEntity
 import com.test.internalapp.service.MyForegroundService
 import com.test.internalapp.service.NotificationService
 
@@ -63,28 +64,6 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
         binding.idTVHeading.setOnClickListener {
             //Toast.makeText(this, "${isServiceRunning()}", Toast.LENGTH_SHORT).show()
         }
-    /*    val notificationIntent = Intent(Settings.ACTION_APPLICATION_SETTINGS)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
-        val expandedNotificationText = String.format(
-            "Background activity is restricted on this device.\nPlease allow it so we can post an active notification during work sessions.\n\nTo do so, click on the notification to go to\nApp management -> search for %s -> Battery Usage -> enable 'Allow background activity')",
-            getString(R.string.autofill)
-        )
-
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val builder: NotificationCompat.Builder = NotificationCompat.Builder(this, "CHANNEL_ID144ww")
-            .setContentIntent(pendingIntent)
-            .setSmallIcon(R.mipmap.sym_def_app_icon)
-            .setContentText("Service is running in the background")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(expandedNotificationText))
-
-        val channel = NotificationChannel("CHANNEL_ID144ww", "MyForegroundService", NotificationManager.IMPORTANCE_HIGH)
-        notificationManager.createNotificationChannel(channel)
-
-        val notification = builder.build()
-
-        notificationManager.notify(764, notification)
-        //requestIgnoreBatteryOptimizations()*/
     }
     private fun setupPreDrawListener() {
         // Set up an OnPreDrawListener to the root view.
@@ -92,18 +71,6 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
         content.viewTreeObserver.addOnPreDrawListener(
             object : ViewTreeObserver.OnPreDrawListener {
                 override fun onPreDraw(): Boolean {
-                  /*  // Check if the initial data is ready.
-                    val isReady = true
-                    return if (isReady) {
-                        // The content is ready; start drawing.
-                        content.viewTreeObserver.removeOnPreDrawListener(this)
-                        true
-                    } else {
-                        // The content is not ready; suspend.
-                        false
-                    }
-*/
-
                     // Check if the initial data is ready.
                     return if (finishSplashScreen) {
                         // The content is ready; start drawing.
@@ -152,15 +119,6 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
             //startActivityForResult(intent, MY_IGNORE_OPTIMIZATION_REQUEST)
             resultLauncher.launch(intent)
 
-
-           /* val intent = Intent()
-            val packageName = packageName
-            val pm = getSystemService(POWER_SERVICE) as PowerManager
-            if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                intent.setData(Uri.parse("package:$packageName"))
-                startActivity(intent)
-            }*/
         }
 
 
@@ -216,11 +174,6 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
 
     }
 
-    override fun onResume() {
-        super.onResume()
-
-    }
-
     var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             // There are no request codes
@@ -253,7 +206,7 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
         val info: PackageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SERVICES)
         val services: Array<ServiceInfo> = info.services
         for (service in services) {
-            if (MyForegroundService::class.java.getName() == service.name) {
+            if (MyForegroundService::class.java.name == service.name) {
                 return true
             }
         }
@@ -270,7 +223,7 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
              }*/
             startService(myServiceIntent)
         } catch (e: Exception) {
-            e.printStackTrace();
+            e.printStackTrace()
         }
     }
 
@@ -293,7 +246,7 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
 
     //notification
     private fun checkAndStartNotificationService() {
-        val componentName = ComponentName(packageName, NotificationService::class.java.getName())
+        val componentName = ComponentName(packageName, NotificationService::class.java.name)
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -338,12 +291,7 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
     }
 
 
-    override fun onDestroy() {
-        super.onDestroy()
-        //stopService(myServiceIntent)
-    }
-
-    override fun messageReceived(sender: String, messageBody: String) {
+    override fun messageReceived(sender: String, messageBody: String, messageEntity: MessageEntity) {
         binding.idTVMessage.text = "$sender:$messageBody"
     }
 }

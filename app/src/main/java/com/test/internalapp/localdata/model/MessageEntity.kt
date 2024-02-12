@@ -17,6 +17,4 @@ data class MessageEntity(
     val sender: String,
     val messageBody: String,
     val date: String
-) : Parcelable {
-
-}
+) : Parcelable

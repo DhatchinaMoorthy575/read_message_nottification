@@ -18,16 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 
 
 class NotificationService : NotificationListenerService() {
     var context: Context? = null
-
-    override fun getActiveNotifications(): Array<StatusBarNotification> {
-        return super.getActiveNotifications()
-    }
 
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val notificationRepository by lazy { StatusBarNotificationRepository(database.statusBarNotificationDao()) }
@@ -37,14 +32,7 @@ class NotificationService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         context = applicationContext
-/*        serviceScope.launch {
-            // Example usage in Service
-            notificationRepository.allNotifications.collect { notifications ->
-                // Handle the list of notifications here
-                // This code runs on the main thread, so update your UI or perform other operations
-                Log.i("Msg", "allNotifications collect:$notifications")
-            }
-        }*/
+
         getCurrentNotifications()
   val ff= activeNotifications
         for (f in ff){
@@ -54,11 +42,6 @@ class NotificationService : NotificationListenerService() {
         Log.i("Msg", "allNotifications getActiveNotifications:$ff")
         Log.i("Msg", "allNotifications getActiveNotifications:$ff")
 
-/*
-        // Delete all notifications (example)
-        serviceScope.launch {
-            notificationRepository.deleteAll()
-        }*/
     }
     private fun getCurrentNotifications() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -77,7 +60,23 @@ class NotificationService : NotificationListenerService() {
         val text = notification.extras?.getString(Notification.EXTRA_TEXT) ?: ""
         return "$title: $text"
     }
+
+    private val pkgLastNotificationWhen: MutableMap<String, Long> = HashMap()
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+
+        if (sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) {
+            Log.d("TAG", "Ignore the notification FLAG_GROUP_SUMMARY")
+            return
+        }
+
+        val lastWhen = pkgLastNotificationWhen[sbn.packageName]
+        if (lastWhen != null && lastWhen >= sbn.notification.`when`) {
+            Log.d("TAG", "Ignore Old notification")
+            return
+        }
+        pkgLastNotificationWhen[sbn.packageName] = sbn.notification.`when`
+
+
         val pack = sbn.packageName
         var ticker = ""
         if (sbn.notification.tickerText != null) {
@@ -88,24 +87,6 @@ class NotificationService : NotificationListenerService() {
         val text = extras.getCharSequence("android.text").toString()
         val subtext = extras.getCharSequence("android.subText").toString()
 
-        val smallIcon = sbn.notification.smallIcon
-        var smallIconbitmap: Bitmap?=null
-        if(smallIcon!=null) {
-            val drawable: Drawable? = smallIcon.loadDrawable(context)
-            smallIconbitmap = drawable?.toBitmapOrNull()
-        }
-        val largeIcon = sbn.notification.getLargeIcon()
-        var largeIconbitmap: Bitmap?=null
-        if(largeIcon!=null) {
-            val largeIcondrawable: Drawable? = largeIcon.loadDrawable(context)
-            largeIconbitmap = largeIcondrawable?.toBitmapOrNull()
-        }
-
-
-        if (extras.containsKey(Notification.EXTRA_PICTURE)) {
-            // this bitmap contain the picture attachment
-            val bmp = extras[Notification.EXTRA_PICTURE] as Bitmap?
-        }
 
         Log.i("Package", pack)
         Log.i("Ticker", ticker)
@@ -119,27 +100,17 @@ class NotificationService : NotificationListenerService() {
         msgrcv.putExtra("subtext", subtext)
 
 
-
-  /*      if (id != null) {
-            val stream = ByteArrayOutputStream()
-            id.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            val byteArray = stream.toByteArray()
-            msgrcv.putExtra("icon", byteArray)
-        }*/
-        // Insert a new notification (example)
         serviceScope.launch {
             if (!pack.equals(packageName)) {
-                val time = Calendar.getInstance().time
+               // val time = Calendar.getInstance().time
                 val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                val current = formatter.format(time)
+                val current = formatter.format(sbn.postTime)
                 val newNotification = StatusBarNotificationEntity(
                     packageName = pack,
                     ticker = ticker,
                     title = title.toString(),
                     text = text.toString(),
                     subtext = subtext,
-                   smallIconId = smallIconbitmap,
-                    largeIcon = largeIconbitmap,
                     datetime = current
                     //  extras = convertBundleToString(extras),
                     //  sbn = sbn
@@ -149,18 +120,7 @@ class NotificationService : NotificationListenerService() {
         }
        // LocalBroadcastManager.getInstance(context!!).sendBroadcast(msgrcv)
     }
-/*    fun convertBundleToString(bundle: Bundle): String {
-        val json = JSONObject()
 
-        // Iterate through all keys in the Bundle and add them to the JSON object
-        for (key in bundle.keySet()) {
-            val value = bundle.get(key)
-            json.put(key, value)
-        }
-
-        // Convert the JSON object to a string
-        return json.toString()
-    }*/
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         Log.i("Msg", "Notification Removed")
     }
