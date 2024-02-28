@@ -9,18 +9,21 @@ import com.test.internalapp.localdata.converters.Converters
 import kotlinx.parcelize.Parcelize
 
 
-@Entity(tableName = "status_bar_notifications",
-    primaryKeys = [
+@Entity(
+    tableName = "status_bar_notifications",
+    primaryKeys =
+    [
         "packageName",
         "ticker",
         "title",
         "text",
         "subtext",
-   ])
+    ]
+)
 @TypeConverters(Converters::class)
 @Parcelize
 data class StatusBarNotificationEntity(
-  // /* @PrimaryKey(autoGenerate = true)*/ val id: Int = 0,
+    // /* @PrimaryKey(autoGenerate = true)*/ val id: Int = 0,
     @ColumnInfo("packageName")
     val packageName: String,
     @ColumnInfo("ticker")
@@ -31,9 +34,9 @@ data class StatusBarNotificationEntity(
     val text: String,
     @ColumnInfo("subtext")
     val subtext: String,
-/*    val smallIconId: Bitmap?,
-    val largeIcon: Bitmap?,*/
-   val datetime: String,
+    /*    val smallIconId: Bitmap?,
+        val largeIcon: Bitmap?,*/
+    val datetime: String,
     //val extras: String,
     //val sbn: StatusBarNotification
 

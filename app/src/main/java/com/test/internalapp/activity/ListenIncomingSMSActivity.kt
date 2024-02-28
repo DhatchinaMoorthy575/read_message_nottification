@@ -29,6 +29,9 @@ import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.permissionx.guolindev.PermissionX
 import com.test.internalapp.databinding.ActivityListenIncomingSmsBinding
+import com.test.internalapp.localdata.SharedPrefs
+import com.test.internalapp.localdata.SharedPrefs.BASE_URL
+import com.test.internalapp.localdata.SharedPrefs.URL
 import com.test.internalapp.localdata.model.MessageEntity
 import com.test.internalapp.service.MyForegroundService
 import com.test.internalapp.service.NotificationService
@@ -64,6 +67,25 @@ class ListenIncomingSMSActivity : AppCompatActivity(), MessageListenerInterface 
         binding.idTVHeading.setOnClickListener {
             //Toast.makeText(this, "${isServiceRunning()}", Toast.LENGTH_SHORT).show()
         }
+
+
+
+        binding.baseUrl.setText(SharedPrefs.getStringBASE_URL(this))
+        binding.url.setText(SharedPrefs.getStringURL(this))
+
+        binding.save.setOnClickListener(View.OnClickListener {
+         val baseUrl=   binding.baseUrl.text.toString().trim()
+            val url=   binding.url.text.toString().trim()
+            if(baseUrl.isNotEmpty() && url.isNotEmpty()){
+                SharedPrefs.saveStringBASE_URL(this@ListenIncomingSMSActivity,baseUrl)
+                SharedPrefs.saveStringURL(this@ListenIncomingSMSActivity,url)
+                Toast.makeText(this, "Success", Toast.LENGTH_LONG).show()
+            }
+            else{
+                Toast.makeText(this, "Values cannot be empty", Toast.LENGTH_LONG).show()
+            }
+        })
+
     }
     private fun setupPreDrawListener() {
         // Set up an OnPreDrawListener to the root view.

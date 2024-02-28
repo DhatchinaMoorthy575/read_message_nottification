@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
     tools:context=".activity.ListenIncomingSMSActivity">
     <!--     creating a text view on below line-->
     <TextView
@@ -20,7 +22,8 @@
         android:textAlignment="center"
         android:textColor="@color/black"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="gone"/>
     <!--     creating a text view on below line-->
     <TextView
         android:id="@+id/idTVMessage"
@@ -39,4 +42,27 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:visibility="gone"/>
-</RelativeLayout>
+    <EditText
+        android:id="@+id/base_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="BASE URL"
+       android:gravity="center"
+        android:layout_margin="10dp"/>
+
+    <EditText
+        android:id="@+id/url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="URL"
+        android:gravity="center"
+        android:layout_margin="10dp"/>
+    <Button
+        android:id="@+id/save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="save"
+        android:layout_margin="10dp"/>
+
+
+</LinearLayout>

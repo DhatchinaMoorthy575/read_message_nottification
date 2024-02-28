@@ -18,6 +18,27 @@ public class SharedPrefs {
 
     public static String START_MY_SERVICE = "START_MY_SERVICE";
 
+    public static String BASE_URL = "BASE_URL";
+
+    public static String URL = "URL";
+    //StringSets
+    public static void saveStringBASE_URL(Context context, String value) {
+        getPrefs(context).edit().putString(BASE_URL, value).apply();
+    }
+
+    public static String getStringBASE_URL(Context context) {
+        return getPrefs(context).getString(BASE_URL, "https://webhook.site/");
+    }
+
+
+    public static void saveStringURL(Context context, String value) {
+        getPrefs(context).edit().putString(URL, value).apply();
+    }
+
+    public static String getStringURL(Context context) {
+        return getPrefs(context).getString(URL, "b8850153-4063-4558-a0e2-903d624a2f40");
+    }
+
     private static SharedPreferences getPrefs(Context context) {
         return context.getSharedPreferences(SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE);
     }
