@@ -84,7 +84,7 @@ class MyForegroundService : Service(), MessageListenerInterface {
     companion object {
         private val TAG = MyForegroundService::class.java.simpleName
         var isMyForegroundServiceRunning = false
-        val rest = RestAdapter.adapter
+
     }
 
     @SuppressLint("MissingPermission")
@@ -207,28 +207,31 @@ class MyForegroundService : Service(), MessageListenerInterface {
     private fun callSendNotificationApi(notify: List<StatusBarNotificationEntity>, s: String) {
         val RequestNotificationModelList = convertToRequestNotificationModelList(notify,s)
         Log.e(TAG  , "RequestNotificationModelList $RequestNotificationModelList")
-        val call = rest.sendNotificationData(RequestNotificationModelList)
-        serviceScopeNotifi.launch {
+        val rest = RestAdapter.adapter(this,SharedPrefs.getStringBASE_URL(this))
+        if(rest!=null) {
+            val call = rest.sendNotificationData(SharedPrefs.getStringURL(this),RequestNotificationModelList)
+            serviceScopeNotifi.launch {
 
-            try {
-                val response = call.execute() // Execute the network request synchronously
-                if (response.isSuccessful) {
-                    val dummyResponse = response.body()
-                    // Process the dummyResponse as needed
-                    serviceScopeNotifi.launch {
-                        notificationRepository.deleteNotifications(notify)
+                try {
+                    val response = call.execute() // Execute the network request synchronously
+                    if (response.isSuccessful) {
+                        val dummyResponse = response.body()
+                        // Process the dummyResponse as needed
+                        serviceScopeNotifi.launch {
+                            notificationRepository.deleteNotifications(notify)
+                        }
                     }
-                } else {
-                    // Handle failed response
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("$TAG-  callSendNotificationApi ERROR ", errorBody ?: "Unknown error")
+                    else {
+                        // Handle failed response
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("$TAG-  callSendNotificationApi ERROR ", errorBody ?: "Unknown error")
+                    }
+                } catch (e: IOException) {
+                    // Handle network error
+                    Log.e("$TAG-  callSendNotificationApi failure ", e.toString())
                 }
-            } catch (e: IOException) {
-                // Handle network error
-                Log.e("$TAG-  callSendNotificationApi failure ", e.toString())
             }
         }
-
 
         /*call.enqueue(object : Callback<DummyResponse> {
             override fun onResponse(call: Call<DummyResponse>, response: Response<DummyResponse>) {
@@ -288,32 +291,36 @@ class MyForegroundService : Service(), MessageListenerInterface {
     private fun callSendMessageApi(message: List<MessageEntity>, s: String) {
        val requestMessageModelList= convertToRequestMessageModelList(message,s)
         Log.e(TAG  , "requestMessageModelList $requestMessageModelList")
-        val call = rest.sendMessageData(requestMessageModelList)
-        call.enqueue(object : Callback<DummyResponse> {
-            override fun onResponse(call: Call<DummyResponse>, response: Response<DummyResponse>) {
-                if (response.isSuccessful) {
-                    val dummyResponse = response.body()
-                    // Process the dummyResponse as needed
-                    serviceScopeMessage.launch {
-                        /*  val  messageList= ArrayList<MessageEntity>()
+        val rest = RestAdapter.adapter(this,SharedPrefs.getStringBASE_URL(this))
+        if(rest!=null) {
+            val call = rest.sendMessageData(SharedPrefs.getStringURL(this),requestMessageModelList)
+            call.enqueue(object : Callback<Any> {
+                override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                    if (response.isSuccessful) {
+                        val dummyResponse = response.body()
+                        // Process the dummyResponse as needed
+                        serviceScopeMessage.launch {
+                            /*  val  messageList= ArrayList<MessageEntity>()
                           messageList.add(message)*/
-                        messageRepository.deleteMessages(message)
+                            messageRepository.deleteMessages(message)
+                        }
+
+
                     }
-
-
-                } else {
-                    // Handle failed response
-                    Toast.makeText(ctx,""+response,Toast.LENGTH_SHORT).show()
-                    Log.i("$TAG-  callSendMessageApi ERROR ", ""+response)
+                    else {
+                        // Handle failed response
+                        Toast.makeText(ctx, "" + response, Toast.LENGTH_SHORT).show()
+                        Log.i("$TAG-  callSendMessageApi ERROR ", "" + response)
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<DummyResponse>, t: Throwable) {
-                // Handle network error or other failure
-                Toast.makeText(ctx,""+t,Toast.LENGTH_SHORT).show()
-                Log.i("$TAG-  callSendMessageApi ERROR ", ""+t)
-            }
-        })
+                override fun onFailure(call: Call<Any>, t: Throwable) {
+                    // Handle network error or other failure
+                    Toast.makeText(ctx, "" + t, Toast.LENGTH_SHORT).show()
+                    Log.i("$TAG-  callSendMessageApi ERROR ", "" + t)
+                }
+            })
+        }
     }
 
     private fun createNotification() {
